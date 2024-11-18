@@ -4,7 +4,7 @@
 #let pir-param = (
   paper: "a4",
   text-size: 13pt,
-  text-font: "Libertinus",
+  text-font: ("Libertinus", "New Computer Modern"),
   math-font: ("Libertinus Math", "New Computer Modern Math"),
   fig-supplement: [Figure],
 )
@@ -176,7 +176,7 @@
   // Logo
   align(top + right)[
     #if lang == "fr" {
-      image("resources/assets/eicnam.png", width: 25%)
+      image("resources/assets/eicnam.png", width: 45%)
     } else {
       image("resources/assets/leCnam_Logo.png", width: 25%)
     }
