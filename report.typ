@@ -4,7 +4,7 @@
 #let pir-param = (
   paper: "a4",
   text-size: 13pt,
-  text-font: ("Libertinus", "New Computer Modern"),
+  text-font: ("Libertinus Serif", "New Computer Modern"),
   math-font: ("Libertinus Math", "New Computer Modern Math"),
   fig-supplement: [Figure],
 )
