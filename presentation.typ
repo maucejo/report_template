@@ -2,10 +2,6 @@
 #import "@preview/showybox:2.0.3": *
 #import "@preview/codelst:2.0.2": sourcecode
 
-//---- Mathematics ----
-// Space for equations
-#let hs = sym.space.thin
-
 // Emphasized box (for equations)
 #let _emphbox(self: none, body) = {
   set align(center)
@@ -19,11 +15,12 @@
 #let emphbox(body) = touying-fn-wrapper(_emphbox.with(body))
 //----
 
-
 #let _subtitle(self: none, body) = {
-  set align(top)
-  set text(size: 1.2em, fill: self.colors.primary, weight: "bold")
-  pad(left: -0.8em, body)
+  if self.store.navigation == "topbar" {
+    set text(size: 1.2em, fill: self.colors.primary, weight: "bold")
+    place(top + left, pad(left: -0.8em, top: -0.25em, body))
+    v(1em)
+  }
 }
 #let subtitle(body) = touying-fn-wrapper(_subtitle.with(body))
 
@@ -155,13 +152,14 @@
 
 // Link box
 #let _link-box(self: none, location, name) = {
-  set align(left)
   block(fill: self.colors.primary, radius: 1em, inset: 0.5em)[
     #set text(fill: white, size: 0.8em, weight: "bold")
     #link(location, name)
   ]
 }
 #let link-box(location, name) = touying-fn-wrapper(_link-box.with(location, name))
+
+#let _typst-builtin-align = align
 
 #let _typst-builtin-align = align
 
@@ -180,15 +178,31 @@
     }
 
     let align = _typst-builtin-align
+    set strong(delta: 0)
     let header(self) = {
-      set align(top)
-      show: components.cell.with(fill: self.colors.primary, inset: 1em)
-      set align(horizon)
-      set strong(delta: 350)
-      set text(fill: white, size: 1.25em)
-      strong(utils.display-current-heading(level: 1))
-      h(1fr)
-      text(size: 0.8em, strong(utils.display-current-heading()))
+      if self.store.navigation == "topbar" {
+        set align(top)
+        show: components.cell.with(fill: self.colors.primary, inset: 1em)
+        set align(horizon)
+        set text(fill: white, size: 1.25em)
+        strong(utils.display-current-heading(level: 1, numbered: false))
+        h(1fr)
+        text(size: 0.8em, strong(utils.display-current-heading(level: 2, numbered: false)))
+      } else if self.store.navigation == "mini-slides" {
+        show: components.cell.with(fill: gradient.linear(self.colors.background.darken(10%), self.colors.background, dir: ttb))
+        components.mini-slides(
+          self:self,
+          fill: self.colors.primary,
+          alpha: 60%,
+          display-section: self.store.mini-slides.at("display-section", default: false),
+          display-subsection: self.store.mini-slides.at("display-subsection", default: true),
+          short-heading: self.store.mini-slides.at("short-heading", default: true),
+          linebreaks: false
+        )
+        line(length: 100%, stroke: 0.5pt + self.colors.primary)
+
+        place(dx: 1em, dy: 0.65em, text(size: 1.2em, fill: self.colors.primary, weight: "bold", utils.display-current-heading(level: 2, numbered: false)))
+      }
     }
 
     let footer(self) = {
@@ -199,7 +213,7 @@
          grid(
           columns: (1fr, 4fr, 1fr),
           align: center + horizon,
-          [ #set image(height: 2em)
+          [ #set image(height: 1.75em)
             #self.info.footer-logo
           ],
           [
@@ -217,7 +231,7 @@
                 ])
               }
             } else {
-              box(stroke: 1.75pt + self.colors.primary, radius: 5pt, inset: -0.5em,outset: 1em)[#utils.slide-counter.display() / #utils.last-slide-number]
+              context box(stroke: 1.75pt + self.colors.primary, radius: 5pt, inset: -0.5em,outset: 1em)[#utils.slide-counter.display() / #utils.last-slide-number]
             }
           ]
         )
@@ -252,44 +266,47 @@
   let new-setting = body => {
     show: align.with(self.store.align)
     show: setting
+
+    if self.store.navigation == "topbar" {v(-1em)}
     body
   }
+
   touying-slide(self: self, config: config, repeat: repeat, setting: new-setting, composer: composer, ..bodies)
   }
 )
 
 #let title-slide = touying-slide-wrapper(self => {
+  set strong(delta: 0)
   let content = {
     set align(center + horizon)
-
-    block(width: 100%, inset: 2cm, {
+    if self.info.logo != none{
       set image(height: self.info.title-logo-height)
-      if self.info.logo != none {
-        if type(self.info.logo) == "content" {
-          set align(top + right)
-          v(-2.5em)
-          self.info.logo
-        } else if logo == none {
-          v(2em)
-        } else {
-          v(-2.5em)
+      if type(self.info.logo) == content {
+        place(top + right, dx: -2cm, dy: 0.25cm, self.info.logo)
+      } else {
+        let im-grid = {
           grid(
             columns: self.info.logo.len(),
             column-gutter: 1fr,
-            ..self.info.logo.map((logos) => (align(center + horizon, logos)))
+            align: center + horizon,
+            inset: 2cm,
+            ..self.info.logo.map((logos) => logos)
           )
         }
+
+        place(top, dy: -1.75cm, im-grid)
       }
+    }
 
-      v(0.5em)
+    block(width: 100%, inset: 2cm, {
       line(length: 100%, stroke: 0.15em + self.colors.primary)
-      text(size: 1.75em, strong(self.info.title, delta: 300))
+      text(size: 1.75em, strong(self.info.title))
       line(length: 100%, stroke: 0.15em + self.colors.primary)
 
-      v(0.5em)
       if self.info.author != none {
+        v(0.5em)
         set text(size: 1em)
-        block(spacing: 1em, strong(self.info.author, delta: 250))
+        block(spacing: 1em, strong(self.info.author))
       }
 
       if self.info.institution != none {
@@ -316,13 +333,24 @@
     toc = "Contents"
   }
 
+  set strong(delta: 0)
   let header = {
-    set align(top)
-    show: components.cell.with(fill: self.colors.primary, inset: 1em)
-    set align(horizon)
-    set strong(delta: 350)
-    set text(fill: white, size: 1.25em)
-    strong(toc)
+    if self.store.navigation == "topbar" {
+      set align(top)
+      show: components.cell.with(fill: self.colors.primary, inset: 1em)
+      set align(horizon)
+      set text(fill: white, size: 1.25em)
+      strong(toc)
+    } else if self.store.navigation == "mini-slides" {
+      set align(top)
+      show: components.cell.with(fill: gradient.linear(self.colors.background.darken(10%), self.colors.background, dir: ttb))
+      v(0.8em)
+      set align(horizon)
+      set text(fill: self.colors.primary, size: 1.25em)
+      h(0.75em) + strong(localizaton.toc)
+      v(-0.6em)
+      line(length: 100%, stroke: 0.5pt + self.colors.primary)
+    }
   }
 
  let self = utils.merge-dicts(
@@ -336,13 +364,14 @@
 
   let content = {
     show outline.entry: it => {
-      let number = int(it.page.text)  + 1
+      let number = it.body.children.first()
+      let section = it.body.children.slice(1).join()
       block(above: 2em, below: 0em)
-      [#text([#number.], fill: self.colors.primary) #h(0.25em) #it.body]
+      [#text([#number], fill: self.colors.primary) #h(0.25em) #section]
     }
 
     set align(horizon)
-    components.adaptive-columns(text(size: 1.2em, strong(outline(title:none, indent: 1em, depth: 1, fill: none), delta: 250)))
+    components.adaptive-columns(text(size: 1.2em, strong(outline(title:none, indent: 1em, depth: 1, fill: none))))
 }
 
   touying-slide(self: self, content)
@@ -350,6 +379,7 @@
 
 #let new-section-slide(level: 1, numbered: true, title) = touying-slide-wrapper(self => {
   let content = {
+    set strong(delta: 0)
     self.store.sec-count.step()
 
     set align(horizon)
@@ -371,7 +401,7 @@
    stack(
       dir: ttb,
       spacing: 0.5em,
-      strong(utils.display-current-heading(level: level, numbered: numbered), delta: 250),
+      [*#utils.display-current-heading(level: level, numbered: false)*],
       block(
         height: 2pt,
         width: 100%,
@@ -383,33 +413,40 @@
   self = utils.merge-dicts(
     self,
     config-common(freeze-slide-counter: true),
-    config-page(fill: self.colors.secondary.lighten(95%))
+    config-page(fill: self.colors.background)
   )
   touying-slide(self: self, content)
 }
-
 )
 
 #let focus-slide(align: center + horizon, body) = touying-slide-wrapper(self => {
   let _align = align
   let align = _typst-builtin-align
+
   self = utils.merge-dicts(
     self,
     config-common(freeze-slide-counter: true),
     config-page(fill: self.colors.primary, margin: 2em),
   )
+
   set text(fill: white, size: 2em)
+  set strong(delta: 0)
   touying-slide(self: self, align(_align, strong(body)))
 })
 
 #let presentation-theme(
   aspect-ratio: "16-9",
   lang: "fr",
+  navigation: "topbar",
   ..args,
   body
 ) = {
   show: touying-slides.with(
     config-info(
+      title: none,
+      short-title: none,
+      author: none,
+      institution: none,
       font: "Lato",
       math-font: "Lete Sans Math",
       code-font: "DejaVu Sans Mono",
@@ -451,7 +488,7 @@
 
     config-methods(
       init: (self: none, body) => {
-        set text(font: self.info.font, size: 20pt, lang: lang)
+        set text(font: self.info.font, size: 20pt, lang: lang, ligatures: false)
         show math.equation: set text(font: self.info.math-font)
         show raw: set text(font: self.info.code-font)
         set par(justify: true)
@@ -466,11 +503,14 @@
     config-store(
       align: align,
       lang: lang,
+      navigation: navigation,
+      mini-slides: (display-section: false, display-subsection: true, short-heading: false),
       sec-count: counter("sec-count"),
-      app-count: counter("app-count")
+      app-count: counter("app-count"),
     ),
     ..args,
   )
 
+  set heading(numbering: "1.")
   body
 }

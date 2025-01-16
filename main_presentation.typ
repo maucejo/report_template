@@ -17,7 +17,7 @@
 
 // Template initialization
 #show: presentation-theme.with(
-  // lang: "en",
+  lang: "en",
   config-info(
     title: title,
     short-title: [Short title],
@@ -41,8 +41,8 @@
 // Normal slide
 #emphbox[
 $
-bold(z)_(k + 1) = bold(A) hs bold(z)_k + bold(B) hs bold(u)_k + bold(w)_k \
-bold(y)_k = bold(C) hs bold(z)_k + bold(v)_k
+bold(z)_(k + 1) = bold(A) bold(z)_k + bold(B) bold(u)_k + bold(w)_k \
+bold(y)_k = bold(C) bold(z)_k + bold(v)_k
 $
 ]
 
@@ -58,7 +58,6 @@ $
 #tip[#lorem(10)]
 #important[#lorem(10)]
 #question[#lorem(10)]
-
 
 = Third section
 
